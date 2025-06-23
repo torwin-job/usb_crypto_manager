@@ -72,8 +72,7 @@
   ```bash
   nuitka --onefile --standalone gui.py
   ```
-- Для создания установщика используйте Inno Setup (см. .iss-файл)
-- Все зависимости — в requirements.txt
+
 
 
 
