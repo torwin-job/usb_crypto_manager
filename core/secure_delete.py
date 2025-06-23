@@ -1,7 +1,7 @@
 import os
 import random
 
-def secure_delete(path, passes=3):
+def secure_delete(path: str, passes: int = 3) -> None:
     if not os.path.isfile(path):
         return
     length = os.path.getsize(path)
