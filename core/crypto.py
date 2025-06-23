@@ -1,6 +1,7 @@
 import os
 import base64
 import tempfile
+from typing import Optional, Tuple
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -10,7 +11,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hmac
 
 # === Вспомогательная функция для получения AES-ключа из пароля ===
-def derive_key_from_password(password, salt, length=32):
+def derive_key_from_password(password: str, salt: bytes, length: int = 32) -> bytes:
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=length,
@@ -21,7 +22,7 @@ def derive_key_from_password(password, salt, length=32):
     return kdf.derive(password.encode())
 
 # === Шифрование файла с помощью AES (CBC) ===
-def encrypt_file_with_password(file_path, out_path, password):
+def encrypt_file_with_password(file_path: str, out_path: str, password: str) -> None:
     salt = os.urandom(16)
     key = derive_key_from_password(password, salt)
     iv = os.urandom(16)
@@ -35,7 +36,7 @@ def encrypt_file_with_password(file_path, out_path, password):
     with open(out_path, 'wb') as f:
         f.write(salt + iv + encrypted)
 
-def decrypt_file_with_password(enc_path, out_path, password):
+def decrypt_file_with_password(enc_path: str, out_path: str, password: str) -> None:
     with open(enc_path, 'rb') as f:
         salt = f.read(16)
         iv = f.read(16)
@@ -49,7 +50,7 @@ def decrypt_file_with_password(enc_path, out_path, password):
     with open(out_path, 'wb') as f:
         f.write(data)
 
-def generate_rsa_keypair(path_private, path_public, password=None):
+def generate_rsa_keypair(path_private: str, path_public: str, password: Optional[str] = None) -> Tuple[str, str]:
     private_key = rsa.generate_private_key(
         public_exponent=65537,
         key_size=2048,
@@ -80,7 +81,7 @@ def generate_rsa_keypair(path_private, path_public, password=None):
     save_file_hash(path_public)
     return priv_path_final, path_public
 
-def generate_aes_key(path, key_size=32, password=None):
+def generate_aes_key(path: str, key_size: int = 32, password: Optional[str] = None) -> str:
     key = os.urandom(key_size)
     import tempfile
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
@@ -96,23 +97,23 @@ def generate_aes_key(path, key_size=32, password=None):
         save_file_hash(path)
         return path
 
-def load_aes_key(path):
+def load_aes_key(path: str) -> bytes:
     with open(path, 'rb') as f:
         return f.read()
 
-def hash_file_sha256(path):
+def hash_file_sha256(path: str) -> str:
     digest = hashes.Hash(hashes.SHA256(), backend=default_backend())
     with open(path, 'rb') as f:
         for chunk in iter(lambda: f.read(4096), b''):
             digest.update(chunk)
     return digest.finalize().hex()
 
-def save_file_hash(path):
+def save_file_hash(path: str) -> None:
     h = hash_file_sha256(path)
     with open(path + '.sha256', 'w') as f:
         f.write(h)
 
-def check_file_hash(path):
+def check_file_hash(path: str) -> Optional[bool]:
     if not os.path.exists(path + '.sha256'):
         return None
     with open(path + '.sha256', 'r') as f:
@@ -120,7 +121,7 @@ def check_file_hash(path):
     actual = hash_file_sha256(path)
     return saved == actual
 
-def sign_data(private_key_path, data, password=None):
+def sign_data(private_key_path: str, data: bytes, password: Optional[str] = None) -> str:
     if private_key_path.endswith('.enc') and password:
         import tempfile
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
@@ -147,7 +148,7 @@ def sign_data(private_key_path, data, password=None):
     )
     return base64.b64encode(signature).decode()
 
-def verify_signature(public_key_path, data, signature_b64):
+def verify_signature(public_key_path: str, data: bytes, signature_b64: str) -> bool:
     with open(public_key_path, 'rb') as f:
         public_key = serialization.load_pem_public_key(
             f.read(),
@@ -165,7 +166,7 @@ def verify_signature(public_key_path, data, signature_b64):
     except Exception:
         return False
 
-def encrypt_file(aes_key_path, file_path):
+def encrypt_file(aes_key_path: str, file_path: str) -> str:
     key = load_aes_key(aes_key_path)
     iv = os.urandom(16)
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
@@ -179,7 +180,7 @@ def encrypt_file(aes_key_path, file_path):
         f.write(iv + encrypted)
     return file_path + '.enc'
 
-def decrypt_file(aes_key_path, file_path_enc):
+def decrypt_file(aes_key_path: str, file_path_enc: str) -> str:
     key = load_aes_key(aes_key_path)
     with open(file_path_enc, 'rb') as f:
         iv = f.read(16)
@@ -194,13 +195,13 @@ def decrypt_file(aes_key_path, file_path_enc):
         f.write(data)
     return out_path
 
-def encrypt_directory(aes_key_path, dir_path):
+def encrypt_directory(aes_key_path: str, dir_path: str) -> None:
     for root, dirs, files in os.walk(dir_path):
         for file in files:
             path = os.path.join(root, file)
             encrypt_file(aes_key_path, path)
 
-def decrypt_directory(aes_key_path, dir_path):
+def decrypt_directory(aes_key_path: str, dir_path: str) -> None:
     for root, dirs, files in os.walk(dir_path):
         for file in files:
             if file.endswith('.enc'):
