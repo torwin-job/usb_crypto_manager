@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+
+# Virtualenv
+venv/
+.env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+build/
+dist/
+*.spec
+*.exe
+*.dll
+*.msi
+*.nuitka*
+*.bak
+*.log
+*.tmp
+*.old
+*.orig
+
+# Installer
+output/
+InnoSetup/
+*.iss
+*.installer*
+
+# Test
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+
+# Keys & sensitive
+crypto_keys/
+*.key
+*.key.enc
+*.pem
+*.pem.enc
+*.sha256
+
+# User data
+*.db
+*.sqlite
+
+# Misc
+*.swp
+*.swo
+*.~ 
