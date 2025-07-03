@@ -1,34 +1,39 @@
-import tkinter as tk
-from tkinter import simpledialog
 import customtkinter as ctk
 
-class PasswordInputDialog(ctk.CTkInputDialog):
-    def __init__(self, parent=None, title="Пароль"):
-        super().__init__(text="Введите пароль для приватного ключа:", title=title)
+class PasswordDialog(ctk.CTkToplevel):
+    def __init__(self, parent, title="Пароль"):
+        super().__init__(parent)
+        self.title(title)
+        self.geometry("300x120")
+        self.resizable(False, False)
+        self.grab_set()
+        ctk.CTkLabel(self, text="Введите пароль для приватного ключа:").pack(pady=10)
+        self.entry = ctk.CTkEntry(self, show="*")
+        self.entry.pack(pady=5)
+        self.ok_btn = ctk.CTkButton(self, text="OK", command=self.on_ok)
+        self.ok_btn.pack(pady=5)
+        self.password = None
+        self.entry.bind('<Return>', lambda e: self.on_ok())
+        self.entry.focus_set()
+        self.wait_window(self)
 
-    def get_input(self):
-        # поле entry создается только после вызова super().get_input()
-        value = super().get_input()
-        try:
-            self.entry.configure(show="*")
-        except Exception:
-            pass
-        return value
+    def on_ok(self):
+        self.password = self.entry.get()
+        self.destroy()
 
-
-def get_password(parent, title="Пароль"):
-    dlg = PasswordInputDialog(parent, title)
-    return dlg.get_input()
+    def get_password(self):
+        return self.password
 
 class ProgressDialog(ctk.CTkToplevel):
     def __init__(self, parent, title="Выполняется операция..."):
         super().__init__(parent)
         self.title(title)
-        self.geometry("350x80")
+        self.geometry("400x120")
         self.resizable(False, False)
-        ctk.CTkLabel(self, text=title, font=("Arial", 13)).pack(pady=8)
-        self.progress = ctk.CTkProgressBar(self, width=300)
-        self.progress.pack(pady=8)
+        self.grab_set()
+        ctk.CTkLabel(self, text=title, font=("Arial", 14)).pack(pady=10)
+        self.progress = ctk.CTkProgressBar(self, width=350)
+        self.progress.pack(pady=10)
         self.progress.set(0)
         self.update_idletasks()
 

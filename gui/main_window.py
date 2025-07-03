@@ -4,7 +4,7 @@ import os
 from tkinter import filedialog, messagebox
 from usb.usb_manager import get_usb_drives, get_usb_drives_with_labels, find_all_keys_on_usb
 from core import crypto, secure_delete
-from gui.dialogs import get_password, ProgressDialog
+from gui.dialogs import PasswordDialog, ProgressDialog
 
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
@@ -210,12 +210,13 @@ class App(ctk.CTk):
     def check_usb_and_key_thread(self):
         drives = get_usb_drives()
         if not drives:
-
+            self.status_label.configure(text="USB-накопители не найдены", text_color="#e74c3c")
             self.set_crypto_buttons_state("disabled")
             self.set_sign_buttons_state("disabled")
             self.usb_keys = {'aes': [], 'rsa_priv': [], 'rsa_pub': []}
             self.update_key_menus()
         else:
+            self.status_label.configure(text=f"USB-накопители: {', '.join(drives)}", text_color="#1abc9c")
             self.set_crypto_buttons_state("normal")
             self.set_sign_buttons_state("normal")
             self.update_usb_menu()
@@ -440,7 +441,8 @@ class App(ctk.CTk):
         return True
 
     def get_password(self):
-        return get_password(self)
+        dlg = PasswordDialog(self)
+        return dlg.get_password()
 
     def get_aes_password(self):
         return self.get_password()
